@@ -19,10 +19,5 @@
         {
             _domainEvents.Add(domainEvent);
         }
-        
-        public void RemoveDomainEvent(IDomainEvent domainEvent)
-        {
-            _domainEvents.Remove(domainEvent);
-        }
     }
 }

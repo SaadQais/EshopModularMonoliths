@@ -1,5 +1,4 @@
-﻿
-namespace Shared.DDD
+﻿namespace Shared.DDD
 {
     public class Entity<T> : IEntity<T>
     {
