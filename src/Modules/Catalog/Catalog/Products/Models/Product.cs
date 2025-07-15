@@ -41,8 +41,8 @@
             decimal price,
             List<string> categories)
         {
-            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price, nameof(price));
+            ArgumentException.ThrowIfNullOrEmpty(name);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
 
             Name = name;
             Description = description;
