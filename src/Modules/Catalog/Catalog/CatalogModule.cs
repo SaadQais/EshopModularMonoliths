@@ -12,7 +12,12 @@ namespace Catalog
             var connectionString = configuration.GetConnectionString("Database");
 
             services.AddDbContext<CatalogDbContext>(options =>
-                options.UseNpgsql(connectionString));
+            {
+                options.AddInterceptors(new AuditableEntityInterceptor());
+                options.UseNpgsql(connectionString);
+            });
+
+            services.AddScoped<IDataSeeder, CatalogDataSeeder>();
 
             return services;
         }
