@@ -1,10 +1,11 @@
 ﻿global using Catalog.Data;
 global using Catalog.Data.Seed;
+global using Catalog.Products.DTOs;
 global using Catalog.Products.Events;
 global using Catalog.Products.Models;
-global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Shared.CQRS;
 global using Shared.Data;
 global using Shared.Data.Interceptors;
 global using Shared.Data.Seed;
