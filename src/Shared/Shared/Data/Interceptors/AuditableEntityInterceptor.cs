@@ -20,6 +20,8 @@ namespace Shared.Data.Interceptors
             InterceptionResult<int> result, 
             CancellationToken cancellationToken = default)
         {
+            UpdateEntity(eventData.Context);
+
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
@@ -35,7 +37,7 @@ namespace Shared.Data.Interceptors
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                 }
 
-                if (entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
+                if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
                 {
                     entry.Entity.LastModifiedBy = "saad";
                     entry.Entity.LastModified = DateTime.UtcNow;
