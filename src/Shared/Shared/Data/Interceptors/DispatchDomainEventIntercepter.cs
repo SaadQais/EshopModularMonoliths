@@ -31,7 +31,8 @@ namespace Shared.Data.Interceptors
             var aggregates = context.ChangeTracker
                 .Entries<IAggregate>()
                 .Where(e => e.Entity.DomainEvents.Any())
-                .Select(e => e.Entity);
+                .Select(e => e.Entity)
+                .ToList();
 
             var domainEvents = aggregates
                 .SelectMany(a => a.DomainEvents)
