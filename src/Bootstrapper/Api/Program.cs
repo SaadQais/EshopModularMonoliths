@@ -1,25 +1,32 @@
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var catalogAssembly = typeof(CatalogModule).Assembly;
+var basketAssembly = typeof(BasketModule).Assembly;
+var orderingAssembly = typeof(OrderingModule).Assembly;
+
+builder.Services
+    .AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
+
 builder.Services
     .AddCatalogModule(builder.Configuration)
     .AddBasketModule(builder.Configuration)
     .AddOrderingModule(builder.Configuration);
 
-// Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Enable Swagger middleware
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Configure the HTTP request pipeline.
+app.MapCarter();
+
 app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule();
