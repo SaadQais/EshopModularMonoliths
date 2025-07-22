@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -11,8 +10,13 @@ namespace Catalog
         public static IServiceCollection AddCatalogModule(this IServiceCollection services, 
             IConfiguration configuration)
         {
-            services.AddMediatR(cfg => 
-                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            });
+                
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
             var connectionString = configuration.GetConnectionString("Database");
 

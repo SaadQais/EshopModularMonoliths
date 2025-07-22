@@ -16,6 +16,9 @@ builder.Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services
+    .AddExceptionHandler<CustomExceptionHandler>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,5 +33,7 @@ app.MapCarter();
 app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule();
+
+app.UseExceptionHandler(options => { });
 
 await app.RunAsync();

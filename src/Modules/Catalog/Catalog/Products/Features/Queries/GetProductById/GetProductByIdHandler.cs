@@ -13,7 +13,7 @@
             var product = await context.Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == query.Id, cancellationToken)
-                    ?? throw new Exception($"Product not found: {query.Id}");
+                    ?? throw new ProductNotFoundException(query.Id);
 
             return new GetProductByIdResult(product.Adapt<ProductDto>());
         }
