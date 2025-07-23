@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Basket.Basket.Models
+﻿namespace Basket.Basket.Models
 {
     public class ShoppingCartItem : Entity<Guid>
     {
@@ -13,7 +11,7 @@ namespace Basket.Basket.Models
         public decimal Price { get; private set; } = default!;
         public string ProductName { get; private set; } = default!;
 
-        public ShoppingCartItem(
+        internal ShoppingCartItem(
             Guid shoppingCartId, 
             Guid productId, 
             int quantity, 
