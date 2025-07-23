@@ -21,3 +21,4 @@ global using Shared.Data.Interceptors;
 global using Shared.Data.Seed;
 global using Shared.DDD;
 global using Shared.Exceptions;
+global using Shared.Pagination;

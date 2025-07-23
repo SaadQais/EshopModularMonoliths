@@ -1,5 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, config) =>
+{
+    config.ReadFrom.Configuration(context.Configuration);
+});
+
 // Add services to the container.
 var catalogAssembly = typeof(CatalogModule).Assembly;
 var basketAssembly = typeof(BasketModule).Assembly;
@@ -29,11 +34,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapCarter();
+app.UseSerilogRequestLogging();
+app.UseExceptionHandler(options => { });
 
 app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule();
-
-app.UseExceptionHandler(options => { });
 
 await app.RunAsync();

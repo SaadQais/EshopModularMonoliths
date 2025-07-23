@@ -1,14 +1,17 @@
 ﻿namespace Catalog.Products.Features.Queries.GetProductsByCategory
 {
-    public record GetProductsByCategoryResponse(IEnumerable<ProductDto> Products);
+    public record GetProductsByCategoryRequest(string Category, int PageIndex = 0, int PageSize = 10)
+        : PaginationRequest(PageIndex, PageSize);
+
+    public record GetProductsByCategoryResponse(PaginatedResult<ProductDto> Products);
 
     public class GetProductsByCategoryEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/products/category/{category}", async (string category, ISender sender) =>
+            app.MapGet("/products/category", async ([AsParameters] GetProductsByCategoryRequest request, ISender sender) =>
             {
-                var result = await sender.Send(new GetProductsByCategoryQuery(category));
+                var result = await sender.Send(new GetProductsByCategoryQuery(request));
 
                 var response = result.Adapt<GetProductsByCategoryResponse>();
 
