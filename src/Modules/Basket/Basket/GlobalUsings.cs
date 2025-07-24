@@ -1,8 +1,14 @@
-﻿global using Basket.Basket.Models;
+﻿global using Basket.Basket.DTOs;
+global using Basket.Basket.Exceptions;
+global using Basket.Basket.Models;
 global using Basket.Data;
+global using FluentValidation;
+global using Mapster;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Shared.CQRS;
 global using Shared.Data;
 global using Shared.Data.Interceptors;
 global using Shared.DDD;
+global using Shared.Exceptions;
 global using System.Reflection;
