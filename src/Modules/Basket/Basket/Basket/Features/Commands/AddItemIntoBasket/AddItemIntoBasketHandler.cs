@@ -16,17 +16,17 @@
         }
     }
 
-    internal class AddItemIntoBasketHandler(BasketDbContext context)
+    internal class AddItemIntoBasketHandler(IBasketRepository basketRepository)
         : ICommandHandler<AddItemIntoBasketCommand, AddItemIntoBasketResult>
     {
         public async Task<AddItemIntoBasketResult> Handle(
             AddItemIntoBasketCommand command, 
             CancellationToken cancellationToken)
         {
-            var shoppingCart = await context.ShoppingCarts
-                .Include(s => s.Items)
-                .SingleOrDefaultAsync(b => b.UserName == command.UserName, cancellationToken)
-                    ?? throw new BasketNotFoundException(command.UserName);
+            var shoppingCart = await basketRepository.GetAsync(
+                command.UserName, 
+                false, 
+                cancellationToken);
 
             shoppingCart.AddItem(
                 command.Item.ProductId, 
@@ -35,7 +35,7 @@
                 command.Item.Price,
                 command.Item.ProductName);
 
-            await context.SaveChangesAsync(cancellationToken);
+            await basketRepository.SaveChangesAsync(cancellationToken);
 
             return new AddItemIntoBasketResult(shoppingCart.Id);
         }

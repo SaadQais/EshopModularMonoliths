@@ -5,21 +5,19 @@
 
     public record GetBasketResult(ShoppingCartDto ShoppingCart);
 
-    internal class GetBasketHandler(BasketDbContext context) 
+    internal class GetBasketHandler(IBasketRepository basketRepository) 
         : IQueryHandler<GetBasketQuery, GetBasketResult>
     {
         public async Task<GetBasketResult> Handle(
             GetBasketQuery query, 
             CancellationToken cancellationToken)
         {
-            var basket = await context.ShoppingCarts
-                .AsNoTracking()
-                .Where(b => b.UserName == query.UserName)
-                .ProjectToType<ShoppingCartDto>()
-                .SingleOrDefaultAsync(cancellationToken)
-                    ?? throw new BasketNotFoundException(query.UserName);
+            var basket = await basketRepository.GetAsync(
+                query.UserName, 
+                asNoTracking: true, 
+                cancellationToken);
 
-            return new GetBasketResult(basket);
+            return new GetBasketResult(basket.Adapt<ShoppingCartDto>());
         }
     }
 }

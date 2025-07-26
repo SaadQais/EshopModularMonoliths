@@ -13,7 +13,7 @@
         }
     }
 
-    internal class CreateBasketHandler(BasketDbContext context)
+    internal class CreateBasketHandler(IBasketRepository basketRepository)
         : ICommandHandler<CreateBasketCommand, CreateBasketResult>
     {
         public async Task<CreateBasketResult> Handle(
@@ -22,8 +22,7 @@
         {
             var shoppingCart = CreateNewBasket(command.ShoppingCart);
 
-            await context.ShoppingCarts.AddAsync(shoppingCart, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
+            await basketRepository.CreateAsync(shoppingCart, cancellationToken);
 
             return new CreateBasketResult(shoppingCart.Id);
         }

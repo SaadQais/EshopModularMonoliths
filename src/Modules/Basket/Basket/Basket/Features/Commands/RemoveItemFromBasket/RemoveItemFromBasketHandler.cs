@@ -14,21 +14,21 @@
         }
     }
 
-    internal class RemoveItemFromBasketHandler(BasketDbContext context)
+    internal class RemoveItemFromBasketHandler(IBasketRepository basketRepository)
         : ICommandHandler<RemoveItemFromBasketCommand, RemoveItemFromBasketResult>
     {
         public async Task<RemoveItemFromBasketResult> Handle(
             RemoveItemFromBasketCommand command, 
             CancellationToken cancellationToken)
         {
-            var shoppingCart = await context.ShoppingCarts
-                .Include(s => s.Items)
-                .SingleOrDefaultAsync(b => b.UserName == command.UserName, cancellationToken)
-                    ?? throw new BasketNotFoundException(command.UserName);
+            var shoppingCart = await basketRepository.GetAsync(
+                command.UserName,
+                false,
+                cancellationToken);
 
             shoppingCart.RemoveItem(command.ProductId);
 
-            await context.SaveChangesAsync(cancellationToken);
+            await basketRepository.SaveChangesAsync(cancellationToken);
 
             return new RemoveItemFromBasketResult(shoppingCart.Id);
         }
