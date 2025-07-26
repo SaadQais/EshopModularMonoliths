@@ -1,5 +1,11 @@
-﻿global using FluentValidation;
+﻿global using Carter;
+global using FluentValidation;
 global using MediatR;
+global using Microsoft.Extensions.DependencyInjection;
+global using Shared.Behaviors;
 global using Shared.CQRS;
 global using Shared.Data.Seed;
 global using Shared.DDD;
+global using System.Reflection;
+global using Microsoft.Extensions.Logging;
+global using System.Diagnostics;

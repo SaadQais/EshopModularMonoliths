@@ -4,11 +4,11 @@
 
     public record UpdateProductResponse(bool IsSuccess);
 
-    public class UpdateProductEndpoint : ICarterModule
+    public class UpdateProductEndpoint
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
+        public static void MapEndpoints(RouteGroupBuilder products)
         {
-            app.MapPut("/products", async (UpdateProductRequest request, ISender sender) =>
+            products.MapPut("/products", async (UpdateProductRequest request, ISender sender) =>
             {
                 var command = request.Adapt<UpdateProductCommand>();
 

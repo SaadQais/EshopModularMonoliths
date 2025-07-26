@@ -4,11 +4,11 @@
 
     public record GetProductsResponse(PaginatedResult<ProductDto> Products);
 
-    public class GetProductsEndpoint : ICarterModule
+    public class GetProductsEndpoint
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
+        public static void MapEndpoints(RouteGroupBuilder products)
         {
-            app.MapGet("/products", async ([AsParameters] PaginationRequest request, ISender sender) =>
+            products.MapGet("/products", async ([AsParameters] PaginationRequest request, ISender sender) =>
             {
                 var result = await sender.Send(new GetProductsQuery(request));
                 

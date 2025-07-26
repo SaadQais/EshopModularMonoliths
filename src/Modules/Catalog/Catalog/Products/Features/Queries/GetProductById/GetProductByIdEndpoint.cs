@@ -2,11 +2,11 @@
 {
     public record GetProductByIdResponse(ProductDto Product);
 
-    public class GetProductByIdEndpoint : ICarterModule
+    public class GetProductByIdEndpoint
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
+        public static void MapEndpoints(RouteGroupBuilder products)
         {
-            app.MapGet("/products/{id}", async (Guid id, ISender sender) =>
+            products.MapGet("/products/{id}", async (Guid id, ISender sender) =>
             {
                 var result = await sender.Send(new GetProductByIdQuery(id));
 

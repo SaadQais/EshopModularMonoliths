@@ -5,11 +5,13 @@
 
     public record GetProductsByCategoryResponse(PaginatedResult<ProductDto> Products);
 
-    public class GetProductsByCategoryEndpoint : ICarterModule
+    public class GetProductsByCategoryEndpoint
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
+        public static void MapEndpoints(RouteGroupBuilder products)
         {
-            app.MapGet("/products/category", async ([AsParameters] GetProductsByCategoryRequest request, ISender sender) =>
+            products.MapGet("/products/category", async (
+                [AsParameters] GetProductsByCategoryRequest request, 
+                ISender sender) =>
             {
                 var result = await sender.Send(new GetProductsByCategoryQuery(request));
 

@@ -24,7 +24,7 @@
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
 
-            var existingItem = _items.FirstOrDefault(x => x.ProductId == productId);
+            var existingItem = Items.FirstOrDefault(x => x.ProductId == productId);
 
             if (existingItem != null)
             {
@@ -33,7 +33,6 @@
             else
             {
                 var newItem = new ShoppingCartItem(Id, productId, quantity, color, price, productName);
-
                 _items.Add(newItem);
             }
         }

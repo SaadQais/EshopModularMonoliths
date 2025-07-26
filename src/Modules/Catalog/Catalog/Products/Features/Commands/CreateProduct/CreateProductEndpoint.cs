@@ -4,11 +4,11 @@
 
     public record CreateProductResponse(Guid Id);
 
-    public class CreateProductEndpoint : ICarterModule
+    public class CreateProductEndpoint
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
+        public static void MapEndpoints(RouteGroupBuilder products)
         {
-            app.MapPost("/products", async (CreateProductRequest request, ISender sender) =>
+            products.MapPost("/products", async (CreateProductRequest request, ISender sender) =>
             {
                 var command = request.Adapt<CreateProductCommand>();
 

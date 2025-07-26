@@ -14,8 +14,9 @@
         {
             var basket = await context.ShoppingCarts
                 .AsNoTracking()
+                .Where(b => b.UserName == query.UserName)
                 .ProjectToType<ShoppingCartDto>()
-                .SingleOrDefaultAsync(b => b.UserName == query.UserName, cancellationToken)
+                .SingleOrDefaultAsync(cancellationToken)
                     ?? throw new BasketNotFoundException(query.UserName);
 
             return new GetBasketResult(basket);

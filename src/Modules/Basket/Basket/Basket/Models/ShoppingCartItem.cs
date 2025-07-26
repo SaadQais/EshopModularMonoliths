@@ -19,7 +19,6 @@
             decimal price, 
             string productName)
         {
-            Id = Guid.NewGuid();
             ShoppingCartId = shoppingCartId;
             ProductId = productId;
             Quantity = quantity;
