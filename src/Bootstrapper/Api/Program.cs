@@ -14,7 +14,7 @@ builder.Services
     .AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
 
 builder.Services
-    .AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
+    .AddMediatRWithAssemblies(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly);
 
 builder.Services
     .AddCatalogModule(builder.Configuration)
