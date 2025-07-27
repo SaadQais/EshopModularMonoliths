@@ -8,15 +8,17 @@
         private readonly List<ShoppingCartItem> _items = [];
         public IReadOnlyList<ShoppingCartItem> Items => _items.AsReadOnly();
 
-        public static ShoppingCart Create(string userName)
+        public static ShoppingCart Create(Guid id, string userName)
         {
             ArgumentException.ThrowIfNullOrEmpty(userName);
 
-            return new ShoppingCart
+            var shoppingCart = new ShoppingCart
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 UserName = userName
             };
+
+            return shoppingCart;
         }
 
         public void AddItem(Guid productId, int quantity, string color, decimal price, string productName)

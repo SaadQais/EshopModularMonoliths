@@ -29,7 +29,7 @@
 
         private static ShoppingCart CreateNewBasket(ShoppingCartDto shoppingCartDto)
         {
-            var shoppingCart =  ShoppingCart.Create(shoppingCartDto.UserName);
+            var shoppingCart =  ShoppingCart.Create(shoppingCartDto.Id, shoppingCartDto.UserName);
 
             foreach (var item in shoppingCartDto.Items)
             {

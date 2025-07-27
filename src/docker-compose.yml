@@ -5,5 +5,12 @@ services:
   seq:
     image: datalust/seq:latest
 
+  distributedcache:
+    image: redis
+
+  redisinsight:
+    container_name: redisinsight
+
 volumes:
   postgres_eshopdb:
+  redisinsight_data:  

@@ -10,6 +10,7 @@ namespace Basket
             IConfiguration configuration)
         {
             services.AddScoped<IBasketRepository, BasketRepository>();
+            services.Decorate<IBasketRepository, CachedBasketRepository>();
 
             var connectionString = configuration.GetConnectionString("Database");
 

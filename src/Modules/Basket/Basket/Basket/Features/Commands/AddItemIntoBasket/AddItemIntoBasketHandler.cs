@@ -35,7 +35,7 @@
                 command.Item.Price,
                 command.Item.ProductName);
 
-            await basketRepository.SaveChangesAsync(cancellationToken);
+            await basketRepository.SaveChangesAsync(command.UserName, cancellationToken);
 
             return new AddItemIntoBasketResult(shoppingCart.Id);
         }

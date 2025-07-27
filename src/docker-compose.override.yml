@@ -20,3 +20,20 @@ services:
     ports:
       - "5341:5341"
       - "9091:80"
+   
+  distributedcache:
+    container_name: distributedcache
+    restart: always
+    ports:
+      - "6379:6379"
+
+  redisinsight:
+    container_name: redisinsight
+    image: redislabs/redisinsight:latest
+    restart: always
+    ports:
+      - "5540:5540"
+    depends_on:
+      - distributedcache
+    volumes:
+      - redisinsight_data:/data
