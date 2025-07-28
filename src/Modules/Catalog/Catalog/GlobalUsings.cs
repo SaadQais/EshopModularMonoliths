@@ -22,3 +22,6 @@ global using Shared.DDD;
 global using Shared.Exceptions;
 global using Shared.Pagination;
 global using System.Reflection;
+global using Catalog.Contracts.Products.DTOs;
+global using Catalog.Contracts.Products.Features.Queries.GetProductById;
+

@@ -16,8 +16,9 @@
         }
     }
 
-    internal class AddItemIntoBasketHandler(IBasketRepository basketRepository)
-        : ICommandHandler<AddItemIntoBasketCommand, AddItemIntoBasketResult>
+    internal class AddItemIntoBasketHandler(
+        IBasketRepository basketRepository,
+        ISender sender) : ICommandHandler<AddItemIntoBasketCommand, AddItemIntoBasketResult>
     {
         public async Task<AddItemIntoBasketResult> Handle(
             AddItemIntoBasketCommand command, 
@@ -28,12 +29,15 @@
                 false, 
                 cancellationToken);
 
+            var result = await sender
+                .Send(new GetProductByIdQuery(command.Item.ProductId), cancellationToken);
+
             shoppingCart.AddItem(
                 command.Item.ProductId, 
                 command.Item.Quantity, 
                 command.Item.Color,
-                command.Item.Price,
-                command.Item.ProductName);
+                result.Product.Price,
+                result.Product.Name);
 
             await basketRepository.SaveChangesAsync(command.UserName, cancellationToken);
 
