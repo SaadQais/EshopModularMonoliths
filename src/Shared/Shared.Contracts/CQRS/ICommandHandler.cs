@@ -1,4 +1,4 @@
-﻿namespace Shared.CQRS
+﻿namespace Shared.Contracts.CQRS
 {
     public interface ICommandHandler<in TCommand>
         : IRequestHandler<TCommand, Unit>
