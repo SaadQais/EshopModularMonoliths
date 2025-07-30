@@ -7,12 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Basket\EventHandlers\**" />
-    <EmbeddedResource Remove="Basket\EventHandlers\**" />
-    <None Remove="Basket\EventHandlers\**" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Shared.Messaging\Shared.Messaging.csproj" />
     <ProjectReference Include="..\..\..\Shared\Shared\Shared.csproj" />
     <ProjectReference Include="..\..\Catalog\Catalog.Contracts\Catalog.Contracts.csproj" />
   </ItemGroup>
@@ -21,5 +16,4 @@
     <Folder Include="Basket\Features\Commands\CheckoutBasket\" />
     <Folder Include="Basket\Features\Commands\UpdateItemPriceInBasket\" />
   </ItemGroup>
-
 </Project>
