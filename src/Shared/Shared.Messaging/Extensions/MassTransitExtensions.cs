@@ -1,6 +1,4 @@
-﻿using MassTransit;
-
-namespace Shared.Messaging.Extensions
+﻿namespace Shared.Messaging.Extensions
 {
     public static class MassTransitExtensions
     {
