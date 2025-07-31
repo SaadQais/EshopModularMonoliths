@@ -11,6 +11,9 @@ services:
   redisinsight:
     container_name: redisinsight
 
+  messagebus:
+    image: rabbitmq:management
+
 volumes:
   postgres_eshopdb:
   redisinsight_data:  
