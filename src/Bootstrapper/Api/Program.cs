@@ -1,4 +1,4 @@
-using Keycloak.AuthServices.Authentication;
+﻿using Keycloak.AuthServices.Authentication;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -44,30 +44,45 @@ builder.Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(config =>
 {
-    config.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    var keycloakBase = builder.Configuration["Keycloak:authority"];
+
+    config.AddSecurityDefinition("Keycloak", new OpenApiSecurityScheme
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter your valid token in the text input below."
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri($"{keycloakBase}/protocol/openid-connect/auth"),
+                TokenUrl = new Uri($"{keycloakBase}/protocol/openid-connect/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    { "openid", "openid" },
+                    { "profile", "profile" }
+                }
+            }
+        },
+        Description = "Authorize via Keycloak OpenID Connect"
     });
+
+    OpenApiSecurityScheme keycloakSecurityScheme = new()
+    {
+        Reference = new OpenApiReference
+        {
+            Id = "Keycloak",
+            Type = ReferenceType.SecurityScheme,
+        },
+        In = ParameterLocation.Header,
+        Name = "Bearer",
+        Scheme = "Bearer",
+    };
 
     config.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        { keycloakSecurityScheme, Array.Empty<string>() },
     });
+
+    //config.OperationFilter<AuthorizeCheckOperationFilter>();
 });
 
 builder.Services
@@ -84,6 +99,10 @@ if (app.Environment.IsDevelopment())
         config.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
         config.DisplayRequestDuration();
         config.DocExpansion(DocExpansion.None);
+
+        config.EnablePersistAuthorization();
+
+        config.OAuthClientId("myclient");  
     });
 }
 
