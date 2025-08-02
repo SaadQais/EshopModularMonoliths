@@ -12,7 +12,8 @@ namespace Basket.Basket.Features
         {
             var basket = app
                 .MapGroup("/basket")
-                .WithTags("Basket");
+                .WithTags("Basket")
+                .RequireAuthorization();
 
             GetBasketEndpoint.MapEndpoints(basket);
             CreateBasketEndpoint.MapEndpoints(basket);

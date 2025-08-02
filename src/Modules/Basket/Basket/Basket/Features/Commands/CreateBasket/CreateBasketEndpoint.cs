@@ -8,9 +8,15 @@
     {
         public static void MapEndpoints(RouteGroupBuilder basket)
         {
-            basket.MapPost("/basket", async (CreateBasketRequest request, ISender sender) =>
+            basket.MapPost("/basket", async (
+                CreateBasketRequest request, 
+                ISender sender,
+                ClaimsPrincipal user) =>
             {
-                var command = request.Adapt<CreateBasketCommand>();
+                var userName = user.Identity!.Name;
+                var updatedShoppingCart = request.ShoppingCart with { UserName = userName! };
+
+                var command = new CreateBasketCommand(updatedShoppingCart);
 
                 var result = await sender.Send(command);
 
@@ -21,6 +27,7 @@
             .WithName("CreateBasket")
             .Produces<CreateBasketResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithSummary("Create Basket")
             .WithDescription("Create Basket");
         }
