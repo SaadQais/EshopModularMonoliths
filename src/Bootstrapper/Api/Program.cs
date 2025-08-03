@@ -1,8 +1,4 @@
-﻿using Keycloak.AuthServices.Authentication;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerUI;
-
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
 {
@@ -81,8 +77,6 @@ builder.Services.AddSwaggerGen(config =>
     {
         { keycloakSecurityScheme, Array.Empty<string>() },
     });
-
-    //config.OperationFilter<AuthorizeCheckOperationFilter>();
 });
 
 builder.Services
