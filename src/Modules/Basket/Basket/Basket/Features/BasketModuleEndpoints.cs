@@ -1,4 +1,5 @@
 ﻿using Basket.Basket.Features.Commands.AddItemIntoBasket;
+using Basket.Basket.Features.Commands.CheckoutBasket;
 using Basket.Basket.Features.Commands.CreateBasket;
 using Basket.Basket.Features.Commands.DeleteBasket;
 using Basket.Basket.Features.Commands.RemoveItemFromBasket;
@@ -20,6 +21,7 @@ namespace Basket.Basket.Features
             DeleteBasketEndpoint.MapEndpoints(basket);
             AddItemIntoBasketEndpoint.MapEndpoints(basket);
             RemoveItemFromBasketEndpoint.MapEndpoints(basket);
+            CheckoutBasketEndpoint.MapEndpoints(basket);
         }
     }
 }
