@@ -1,4 +1,7 @@
-﻿using Ordering.Ordering.Features.Commands;
+﻿using Ordering.Ordering.Features.Commands.CreateOrder;
+using Ordering.Ordering.Features.Commands.DeleteOrder;
+using Ordering.Ordering.Features.Queries.GetOrderById;
+using Ordering.Ordering.Features.Queries.GetOrders;
 
 namespace Ordering.Ordering.Features
 {
@@ -11,6 +14,9 @@ namespace Ordering.Ordering.Features
                 .WithTags("Orders");
 
             CreateOrderEndpoint.MapEndpoints(orders);
+            DeleteOrderEndpoints.MapEndpoints(orders);
+            GetOrdersEndpoints.MapEndpoints(orders);
+            GetOrderByIdEndpoints.MapEndpoints(orders);
         }
     }
 }

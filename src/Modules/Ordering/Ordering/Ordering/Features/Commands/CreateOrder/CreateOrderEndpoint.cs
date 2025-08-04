@@ -1,4 +1,4 @@
-﻿namespace Ordering.Ordering.Features.Commands
+﻿namespace Ordering.Ordering.Features.Commands.CreateOrder
 {
     public record CreateOrderRequest(OrderDto Order);
     public record CreateOrderResponse(Guid Id);

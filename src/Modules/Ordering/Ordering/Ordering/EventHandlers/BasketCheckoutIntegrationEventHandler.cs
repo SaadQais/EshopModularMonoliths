@@ -1,6 +1,4 @@
-﻿using MassTransit;
-using Ordering.Ordering.DTOs;
-using Shared.Messaging.Events;
+﻿using Ordering.Ordering.Features.Commands.CreateOrder;
 
 namespace Ordering.Ordering.EventHandlers
 {
@@ -17,7 +15,7 @@ namespace Ordering.Ordering.EventHandlers
             await sender.Send(createOrderCommand);
         }
 
-        private CreateOrderCommand MapToCreateOrderCommand(BasketCheckoutIntegrationEvent message)
+        private static CreateOrderCommand MapToCreateOrderCommand(BasketCheckoutIntegrationEvent message)
         {
             // Create full order with incoming event data
             var addressDto = new AddressDto(message.FirstName, message.LastName, message.EmailAddress, message.AddressLine, message.Country, message.State, message.ZipCode);

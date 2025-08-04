@@ -1,4 +1,4 @@
-﻿namespace Ordering.Ordering.Features.Commands
+﻿namespace Ordering.Ordering.Features.Commands.CreateOrder
 {
     public record CreateOrderCommand(OrderDto Order)
         : ICommand<CreateOrderResult>;
@@ -58,7 +58,7 @@
                     orderDto.Payment.CardName, 
                     orderDto.Payment.CardNumber, 
                     orderDto.Payment.Expiration, 
-                    orderDto.Payment.Cvv, 
+                    orderDto.Payment.CVV, 
                     orderDto.Payment.PaymentMethod));
 
             orderDto.Items.ForEach(item =>
