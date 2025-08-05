@@ -14,31 +14,41 @@
         }
     }
 
-    internal class CheckoutBasketHandler(
-        BasketDbContext dbContext,
-        IBasketRepository repository,
-        IBus bus) : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
+    internal class CheckoutBasketHandler(BasketDbContext context) 
+        : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
     {
         public async Task<CheckoutBasketResult> Handle(CheckoutBasketCommand command, CancellationToken cancellationToken)
         {
-            // get existing basket with total price
-            // Set totalprice on basketcheckout event message
-            // send basket checkout event to rabbitmq using masstransit
-            // delete the basket
-
-            await using var transaction =
-                await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {
-                var basket = await repository.GetAsync(command.BasketCheckout.UserName, true, cancellationToken);
+                // Get existing basket with total price
+                var basket = await context.ShoppingCarts
+                    .Include(x => x.Items)
+                    .SingleOrDefaultAsync(x => x.UserName == command.BasketCheckout.UserName, cancellationToken) 
+                        ?? throw new BasketNotFoundException(command.BasketCheckout.UserName);
 
+                // Set total price on basket checkout event message
                 var eventMessage = command.BasketCheckout.Adapt<BasketCheckoutIntegrationEvent>();
                 eventMessage.TotalPrice = basket.TotalPrice;
 
-                await bus.Publish(eventMessage, cancellationToken);
+                // Write a message to the outbox
+                var outboxMessage = new OutboxMessage
+                {
+                    Id = Guid.NewGuid(),
+                    Type = typeof(BasketCheckoutIntegrationEvent).AssemblyQualifiedName!,
+                    Content = JsonSerializer.Serialize(eventMessage),
+                    OccuredOn = DateTime.UtcNow
+                };
 
-                await repository.DeleteAsync(command.BasketCheckout.UserName, cancellationToken);
+                await context.OutboxMessages.AddAsync(outboxMessage, cancellationToken);
+
+                // Delete the basket
+                context.ShoppingCarts.Remove(basket);
+
+                await context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
 
                 return new CheckoutBasketResult(true);
             }
