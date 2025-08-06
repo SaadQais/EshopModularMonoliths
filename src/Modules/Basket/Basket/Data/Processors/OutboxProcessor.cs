@@ -51,7 +51,7 @@
                     logger.LogError(ex, "Error processing outbox messages");
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); // Adjust the delay as needed
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); 
             }
         }
     }

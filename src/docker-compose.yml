@@ -17,6 +17,12 @@ services:
   identity:
     image: quay.io/keycloak/keycloak:26.3.2
 
+  api:
+    image: ${DOCKER_REGISTRY-}api
+    build:
+      context: .
+      dockerfile: Bootstrapper/Api/Dockerfile
+
 volumes:
   postgres_eshopdb:
   redisinsight_data:  
