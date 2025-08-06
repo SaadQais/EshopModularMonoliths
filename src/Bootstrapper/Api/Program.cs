@@ -40,7 +40,7 @@ builder.Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(config =>
 {
-    var keycloakBase = builder.Configuration["Keycloak:authority"];
+    var keycloakBase = builder.Configuration["Keycloak:Authority"];
 
     config.AddSecurityDefinition("Keycloak", new OpenApiSecurityScheme
     {
