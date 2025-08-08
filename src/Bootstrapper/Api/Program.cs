@@ -1,11 +1,15 @@
 ﻿var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults FIRST
+builder.AddServiceDefaults();
+
+// Logging configuration (now enhanced by Aspire)
 builder.Host.UseSerilog((context, config) =>
 {
     config.ReadFrom.Configuration(context.Configuration);
 });
 
-// common services
+// Common services with assemblies
 var catalogAssembly = typeof(CatalogModule).Assembly;
 var basketAssembly = typeof(BasketModule).Assembly;
 var orderingAssembly = typeof(OrderingModule).Assembly;
@@ -16,27 +20,30 @@ builder.Services
 builder.Services
     .AddMediatRWithAssemblies(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly);
 
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-});
+// Redis cache with Aspire
+builder.AddRedisDistributedCache("distributedcache");
 
+// Message bus with Aspire
+builder.AddRabbitMQClient("messagebus");
+
+// Update MassTransit configuration for Aspire
 builder.Services
     .AddMassTransitWithAssemblies(
         builder.Configuration,
-        catalogAssembly, 
-        basketAssembly, 
+        catalogAssembly,
+        basketAssembly,
         orderingAssembly);
 
+// Authentication
 builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
 
-// module services
-builder.Services
-    .AddCatalogModule(builder.Configuration)
-    .AddBasketModule(builder.Configuration)
-    .AddOrderingModule(builder.Configuration);
+// Module services - Updated for Aspire
+builder.AddCatalogModule()
+       .AddBasketModule()
+       .AddOrderingModule();
 
+// API Documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(config =>
 {
@@ -79,12 +86,16 @@ builder.Services.AddSwaggerGen(config =>
     });
 });
 
+// Exception handling
 builder.Services
     .AddExceptionHandler<CustomExceptionHandler>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Add Aspire default endpoints (health checks, etc.)
+app.MapDefaultEndpoints();
+
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -93,19 +104,19 @@ if (app.Environment.IsDevelopment())
         config.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
         config.DisplayRequestDuration();
         config.DocExpansion(DocExpansion.None);
-
         config.EnablePersistAuthorization();
-
-        config.OAuthClientId("myclient");  
+        config.OAuthClientId("myclient");
     });
 }
 
+// Middleware pipeline
 app.MapCarter();
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler(options => { });
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Module middleware
 app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule();

@@ -1,28 +1,29 @@
 ﻿using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
 
 namespace Catalog
 {
     public static class CatalogModule
     {
-        public static IServiceCollection AddCatalogModule(this IServiceCollection services, 
-            IConfiguration configuration)
+        public static IHostApplicationBuilder AddCatalogModule(this IHostApplicationBuilder builder)
         {
-            var connectionString = configuration.GetConnectionString("Database");
+            // Register interceptors first
+            builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+            builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventIntercepter>();
 
-            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventIntercepter>();
-
-            services.AddDbContext<CatalogDbContext>((sp, options) =>
+            // Add PostgreSQL connection
+            builder.AddNpgsqlDbContext<CatalogDbContext>("EShopDb", configureDbContextOptions: options =>
             {
+                var sp = builder.Services.BuildServiceProvider();
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                options.UseNpgsql(connectionString);
             });
 
-            services.AddScoped<IDataSeeder, CatalogDataSeeder>();
+            // Register your data seeder
+            builder.Services.AddScoped<IDataSeeder, CatalogDataSeeder>();
 
-            return services;
+            return builder;
         }
 
         public static IApplicationBuilder UseCatalogModule(this IApplicationBuilder app)

@@ -1,30 +1,29 @@
 ﻿using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 
 namespace Basket
 {
     public static class BasketModule
     {
-        public static IServiceCollection AddBasketModule(this IServiceCollection services, 
-            IConfiguration configuration)
+        public static IHostApplicationBuilder AddBasketModule(this IHostApplicationBuilder builder)
         {
-            services.AddScoped<IBasketRepository, BasketRepository>();
-            services.Decorate<IBasketRepository, CachedBasketRepository>();
+            // Repository services
+            builder.Services.AddScoped<IBasketRepository, BasketRepository>();
+            builder.Services.Decorate<IBasketRepository, CachedBasketRepository>();
 
-            var connectionString = configuration.GetConnectionString("Database");
+            // Register interceptors
+            builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+            builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventIntercepter>();
 
-            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventIntercepter>();
-
-            services.AddDbContext<BasketDbContext>((sp, options) =>
+            builder.AddNpgsqlDbContext<BasketDbContext>("EShopDb", configureDbContextOptions: options =>
             {
+                var sp = builder.Services.BuildServiceProvider();
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                options.UseNpgsql(connectionString);
             });
 
-            services.AddHostedService<OutboxProcessor>();
+            // Background service for outbox pattern
+            builder.Services.AddHostedService<OutboxProcessor>();
 
-            return services;
+            return builder;
         }
 
         public static IApplicationBuilder UseBasketModule(this IApplicationBuilder app)

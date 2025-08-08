@@ -1,22 +1,23 @@
-﻿namespace Ordering
+﻿using Microsoft.Extensions.Hosting;
+
+namespace Ordering
 {
     public static class OrderingModule
     {
-        public static IServiceCollection AddOrderingModule(this IServiceCollection services, 
-            IConfiguration configuration)
+        public static IHostApplicationBuilder AddOrderingModule(this IHostApplicationBuilder builder)
         {
-            var connectionString = configuration.GetConnectionString("Database");
+            // Register interceptors
+            builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+            builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventIntercepter>();
 
-            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventIntercepter>();
-
-            services.AddDbContext<OrderingDbContext>((sp, options) =>
+            
+            builder.AddNpgsqlDbContext<OrderingDbContext>("EShopDb", configureDbContextOptions: options =>
             {
+                var sp = builder.Services.BuildServiceProvider();
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                options.UseNpgsql(connectionString);
             });
 
-            return services;
+            return builder;
         }
 
         public static IApplicationBuilder UseOrderingModule(this IApplicationBuilder app)
