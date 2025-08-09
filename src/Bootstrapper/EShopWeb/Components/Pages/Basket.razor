@@ -1,0 +1,129 @@
+﻿@page "/basket"
+
+@inject BasketService BasketService
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>My Basket - EShop</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">My Shopping Basket</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else if (_basket?.Items?.Any() == true)
+{
+    <MudCard>
+        <MudCardContent>
+            <MudTable Items="_basket.Items" Hover="true" Striped="true">
+                <HeaderContent>
+                    <MudTh>Product</MudTh>
+                    <MudTh>Color</MudTh>
+                    <MudTh>Quantity</MudTh>
+                    <MudTh>Price</MudTh>
+                    <MudTh>Total</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Product">@context.ProductName</MudTd>
+                    <MudTd DataLabel="Color">@context.Color</MudTd>
+                    <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
+                    <MudTd DataLabel="Price">$@context.Price.ToString("F2")</MudTd>
+                    <MudTd DataLabel="Total">$@((context.Price * context.Quantity).ToString("F2"))</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   OnClick="() => RemoveItem(context.ProductId)">
+                            Remove
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+        <MudCardActions>
+            <MudSpacer />
+            <MudText Typo="Typo.h6" Color="Color.Primary">
+                Total: $@_basket.TotalPrice.ToString("F2")
+            </MudText>
+        </MudCardActions>
+        <MudCardActions>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       Href="/products">
+                Continue Shopping
+            </MudButton>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="CheckoutBasket"
+                       Disabled="_basket.Items?.Count == 0">
+                Checkout
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+else
+{
+    <MudAlert Severity="Severity.Info">
+        Your basket is empty.
+        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/products">
+            Start Shopping
+        </MudButton>
+    </MudAlert>
+}
+
+@code {
+    private ShoppingCartDto? _basket;
+    private bool _loading = true;
+    private string? _userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userName = authState.User?.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(_userName))
+        {
+            await LoadBasket();
+        }
+
+        _loading = false;
+    }
+
+    private async Task LoadBasket()
+    {
+        if (!string.IsNullOrEmpty(_userName))
+        {
+            _basket = await BasketService.GetBasketAsync(_userName);
+        }
+    }
+
+    private async Task RemoveItem(Guid productId)
+    {
+        if (!string.IsNullOrEmpty(_userName))
+        {
+            var success = await BasketService.RemoveItemFromBasketAsync(_userName, productId);
+
+            if (success)
+            {
+                Snackbar.Add("Item removed from basket", Severity.Success);
+                await LoadBasket();
+            }
+            else
+            {
+                Snackbar.Add("Failed to remove item", Severity.Error);
+            }
+        }
+    }
+
+    private async Task CheckoutBasket()
+    {
+        // For now, just show a message
+        // Later you can implement a proper checkout flow
+        Snackbar.Add("Checkout functionality coming soon!", Severity.Info);
+    }
+}

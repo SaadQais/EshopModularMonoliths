@@ -1,0 +1,12 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="/products" Match="NavLinkMatch.Prefix" Icon="Icons.Material.Filled.Store">Products</MudNavLink>
+    
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/basket" Match="NavLinkMatch.Prefix" Icon="Icons.Material.Filled.ShoppingCart">My Basket</MudNavLink>
+            <MudNavLink Href="/orders" Match="NavLinkMatch.Prefix" Icon="Icons.Material.Filled.Receipt">My Orders</MudNavLink>
+            <MudNavLink Href="/profile" Match="NavLinkMatch.Prefix" Icon="Icons.Material.Filled.Person">Profile</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+</MudNavMenu>

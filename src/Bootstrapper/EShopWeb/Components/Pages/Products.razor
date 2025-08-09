@@ -1,0 +1,408 @@
+﻿@page "/"
+@page "/products"
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Text.Json
+@inject CatalogService CatalogService
+@inject BasketService BasketService
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Products - EShop</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+    <MudText Typo="Typo.h3" GutterBottom="true" Class="mb-6">Products</MudText>
+
+    <!-- Filter Section -->
+    <MudCard Class="mb-6">
+        <MudCardContent>
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_searchTerm" 
+                                 Label="Search products" 
+                                 Variant="Variant.Outlined" 
+                                 Adornment="Adornment.End" 
+                                 AdornmentIcon="Icons.Material.Filled.Search"
+                                 OnKeyUp="OnSearchKeyUp"
+                                 Immediate="false" />
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudSelect @bind-Value="_selectedCategory"
+                               Label="Category"
+                               Variant="Variant.Outlined"
+                               T="string"
+                               AnchorOrigin="Origin.BottomCenter"
+                               TransformOrigin="Origin.TopCenter">
+                        <MudSelectItem T="string" Value="@("")">All Categories</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("category1")">Category 1</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("category2")">Category 2</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="2">
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="SearchProducts"
+                              FullWidth="true">
+                        Search
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Loading State -->
+    @if (_loading)
+{
+    <MudGrid Justify="Justify.Center" Class="pa-16">
+        <MudItem>
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.h6" Class="mt-4" Align="Align.Center">Loading products...</MudText>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    @if (HasProducts)
+    {
+        <MudGrid>
+            @foreach (var product in _products!.Data)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Class="mud-height-full d-flex flex-column">
+                        <MudCardMedia Image="@GetProductImage(product.ImageFile)" 
+                                     Height="250" 
+                                     Class="cursor-pointer"
+                                     @onclick="() => ViewProductDetails(product.Id)" />
+                        
+                        <MudCardContent Class="flex-grow-1 d-flex flex-column">
+                            <MudText Typo="Typo.h6" Class="mb-2" GutterBottom="true">
+                                @product.Name
+                            </MudText>
+                            
+                            <MudText Typo="Typo.body2" 
+                                    Color="Color.Secondary" 
+                                    Class="mb-3 flex-grow-1">
+                                @GetTruncatedDescription(product.Description)
+                            </MudText>
+                            
+                            <div class="d-flex align-center justify-space-between mb-3">
+                                <MudText Typo="Typo.h5" Color="Color.Primary">
+                                    $@product.Price.ToString("F2")
+                                </MudText>
+                            </div>
+                            
+                            <MudChipSet T="string" Class="mb-3">
+                                @if (product.Categories != null)
+                                {
+                                    @foreach (var category in product.Categories)
+                                    {
+                                        <MudChip Size="Size.Small" 
+                                                Color="Color.Secondary" 
+                                                Variant="Variant.Text">
+                                            @category
+                                        </MudChip>
+                                    }
+                                }
+                            </MudChipSet>
+                        </MudCardContent>
+                        
+                        <MudCardActions Class="pa-4">
+                            <AuthorizeView>
+                                <Authorized>
+                                    <MudButton Variant="Variant.Filled" 
+                                              Color="Color.Primary" 
+                                              FullWidth="true"
+                                              StartIcon="Icons.Material.Filled.AddShoppingCart"
+                                              OnClick="() => AddToBasket(product)"
+                                              Disabled="_addingToBasket.Contains(product.Id)">
+                                        @if (_addingToBasket.Contains(product.Id))
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                            <span class="ml-2">Adding...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Add to Basket</span>
+                                        }
+                                    </MudButton>
+                                </Authorized>
+                                <NotAuthorized>
+                                    <MudButton Variant="Variant.Outlined" 
+                                              Color="Color.Primary" 
+                                              FullWidth="true"
+                                              StartIcon="Icons.Material.Filled.Visibility"
+                                              OnClick="() => ViewProductDetails(product.Id)">
+                                        View Details
+                                    </MudButton>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <!-- Pagination -->
+        <MudGrid Justify="Justify.Center" Class="mt-6">
+            <MudItem>
+                <MudPagination Count="@GetTotalPages()" 
+                              Selected="_currentPage" 
+                              SelectedChanged="OnPageChanged"
+                              ShowFirstButton="true"
+                              ShowLastButton="true"
+                              Color="Color.Primary" />
+            </MudItem>
+        </MudGrid>
+
+        <!-- Results Info -->
+        <MudGrid Justify="Justify.Center" Class="mt-4">
+            <MudItem>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                    Showing @((_currentPage - 1) * _pageSize + 1) to @Math.Min(_currentPage * _pageSize, _products?.Count ?? 0) 
+                    of @(_products?.Count ?? 0) products
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    }
+    else
+    {
+        <!-- No Products Found -->
+        <MudCard Class="pa-8">
+            <MudCardContent Class="text-center">
+                <MudIcon Icon="Icons.Material.Filled.SearchOff" 
+                        Size="Size.Large" 
+                        Color="Color.Secondary" 
+                        Class="mb-4" />
+                <MudText Typo="Typo.h6" GutterBottom="true">No products found</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                    @if (!string.IsNullOrEmpty(_searchTerm) || !string.IsNullOrEmpty(_selectedCategory))
+                    {
+                        <text>Try adjusting your search criteria or browse all products.</text>
+                    }
+                    else
+                    {
+                        <text>No products are available at the moment.</text>
+                    }
+                </MudText>
+                @if (!string.IsNullOrEmpty(_searchTerm) || !string.IsNullOrEmpty(_selectedCategory))
+                {
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="ClearFilters">
+                        Show All Products
+                    </MudButton>
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+}
+</MudContainer>
+
+@code {
+    private PaginatedResult<ProductDto>? _products;
+    private bool _loading = true;
+    private int _currentPage = 1;
+    private readonly int _pageSize = 12;
+    private string _searchTerm = string.Empty;
+    private string _selectedCategory = string.Empty;
+    private HashSet<Guid> _addingToBasket = new();
+    private string? _userName;
+
+    private bool HasProducts => _products?.Data?.Any() == true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize with empty data to prevent null reference
+        _products = new PaginatedResult<ProductDto> 
+        { 
+            Data = new List<ProductDto>(), 
+            Count = 0, 
+            PageIndex = 0, 
+            PageSize = _pageSize 
+        };
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userName = authState.User?.Identity?.Name;
+        
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        _loading = true;
+        
+        try
+        {
+            PaginatedResult<ProductDto>? result = null;
+
+            if (!string.IsNullOrEmpty(_selectedCategory))
+            {
+                result = await CatalogService.GetProductsByCategoryAsync(
+                    _selectedCategory, _currentPage - 1, _pageSize);
+            }
+            else
+            {
+                result = await CatalogService.GetProductsAsync(_currentPage - 1, _pageSize);
+            }
+
+            // Ensure we always have a valid object
+            _products = result ?? new PaginatedResult<ProductDto> 
+            { 
+                Data = new List<ProductDto>(), 
+                Count = 0, 
+                PageIndex = _currentPage - 1, 
+                PageSize = _pageSize 
+            };
+
+            // Apply client-side search filter if needed
+            if (!string.IsNullOrEmpty(_searchTerm) && _products.Data != null)
+            {
+                var filteredData = _products.Data
+                    .Where(p => (p.Name?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                               (p.Description?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+
+                _products = new PaginatedResult<ProductDto>
+                {
+                    Data = filteredData,
+                    Count = filteredData.Count,
+                    PageIndex = _products.PageIndex,
+                    PageSize = _products.PageSize
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading products: {ex.Message}");
+            Snackbar.Add("Error loading products. Please try again.", Severity.Error);
+            
+            // Set empty data on error
+            _products = new PaginatedResult<ProductDto> 
+            { 
+                Data = new List<ProductDto>(), 
+                Count = 0, 
+                PageIndex = 0, 
+                PageSize = _pageSize 
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _currentPage = page;
+        await LoadProducts();
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchProducts();
+        }
+    }
+
+    private async Task OnCategoryChanged(string value)
+    {
+        _selectedCategory = value ?? string.Empty;
+        _currentPage = 1;
+        await LoadProducts();
+    }
+
+    private async Task SearchProducts()
+    {
+        _currentPage = 1;
+        await LoadProducts();
+    }
+
+    private async Task ClearFilters()
+    {
+        _searchTerm = string.Empty;
+        _selectedCategory = string.Empty;
+        _currentPage = 1;
+        await LoadProducts();
+    }
+
+    private int GetTotalPages()
+    {
+        if (_products == null || _products.Count == 0) return 1;
+        return (int)Math.Ceiling((double)_products.Count / _pageSize);
+    }
+
+    private string GetProductImage(string? imageFile)
+    {
+        return string.IsNullOrEmpty(imageFile) 
+            ? "https://via.placeholder.com/300x250?text=No+Image" 
+            : $"/images/products/{imageFile}";
+    }
+
+    private string GetTruncatedDescription(string? description)
+    {
+        if (string.IsNullOrEmpty(description))
+            return "No description available";
+
+        const int maxLength = 100;
+        if (description.Length <= maxLength)
+            return description;
+        
+        return description.Substring(0, maxLength) + "...";
+    }
+
+    private void ViewProductDetails(Guid productId)
+    {
+        Snackbar.Add($"Product details for {productId}", Severity.Info);
+        // Navigation.NavigateTo($"/products/{productId}");
+    }
+
+    private async Task AddToBasket(ProductDto product)
+    {
+        if (string.IsNullOrEmpty(_userName))
+        {
+            Snackbar.Add("Please login to add items to basket", Severity.Warning);
+            return;
+        }
+
+        if (_addingToBasket.Contains(product.Id))
+            return;
+
+        _addingToBasket.Add(product.Id);
+
+        try
+        {
+            var basketItem = new ShoppingCartItemDto(
+                Id: Guid.NewGuid(),
+                ShoppingCartId: Guid.NewGuid(),
+                ProductId: product.Id,
+                Quantity: 1,
+                Color: "Default",
+                Price: product.Price,
+                ProductName: product.Name ?? "Unknown Product"
+            );
+
+            var success = await BasketService.AddItemToBasketAsync(_userName, basketItem);
+            
+            if (success)
+            {
+                Snackbar.Add($"Added {product.Name} to basket", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to add item to basket", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding item to basket: {ex.Message}");
+            Snackbar.Add("Error adding item to basket", Severity.Error);
+        }
+        finally
+        {
+            _addingToBasket.Remove(product.Id);
+        }
+    }
+}

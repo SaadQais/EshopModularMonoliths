@@ -1,0 +1,10 @@
+﻿global using EShopWeb.Components;
+global using EShopWeb.Models;
+global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.Cookies;
+global using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+global using Microsoft.AspNetCore.Mvc;
+global using MudBlazor.Services;
+global using System.Net.Http.Headers;
+global using System.Text;
+global using System.Text.Json;

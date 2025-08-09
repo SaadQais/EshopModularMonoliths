@@ -1,0 +1,13 @@
+﻿@page "/login"
+@inject NavigationManager Navigation
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var returnUrl = ReturnUrl ?? "/";
+        Navigation.NavigateTo($"/Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}", true);
+    }
+}

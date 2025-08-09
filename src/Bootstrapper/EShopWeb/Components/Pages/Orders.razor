@@ -1,0 +1,154 @@
+﻿@page "/orders"
+
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>My Orders - EShop</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">My Orders</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else if (_orders?.Any() == true)
+{
+    <MudGrid>
+        @foreach (var order in _orders)
+        {
+            <MudItem xs="12">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Order #@order.OrderName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                Customer ID: @order.CustomerId
+                            </MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="Icons.Material.Filled.ExpandMore"
+                                           Color="Color.Default"
+                                           OnClick="() => ToggleOrderDetails(order.Id)" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+
+                    @if (_expandedOrders.Contains(order.Id))
+                    {
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" md="6">
+                                    <MudText Typo="Typo.h6" GutterBottom="true">Shipping Address</MudText>
+                                    <MudText>@order.ShippingAddress.FirstName @order.ShippingAddress.LastName</MudText>
+                                    <MudText>@order.ShippingAddress.AddressLine</MudText>
+                                    <MudText>@order.ShippingAddress.City, @order.ShippingAddress.State @order.ShippingAddress.ZipCode</MudText>
+                                    <MudText>@order.ShippingAddress.Country</MudText>
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudText Typo="Typo.h6" GutterBottom="true">Payment Method</MudText>
+                                    <MudText>****-****-****-@order.Payment.CardNumber.Substring(Math.Max(0, order.Payment.CardNumber.Length - 4))</MudText>
+                                    <MudText>@order.Payment.CardName</MudText>
+                                </MudItem>
+
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.h6" GutterBottom="true">Order Items</MudText>
+                                    <MudTable Items="order.Items" Dense="true">
+                                        <HeaderContent>
+                                            <MudTh>Product ID</MudTh>
+                                            <MudTh>Quantity</MudTh>
+                                            <MudTh>Price</MudTh>
+                                            <MudTh>Total</MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate>
+                                            <MudTd>@context.ProductId</MudTd>
+                                            <MudTd>@context.Quantity</MudTd>
+                                            <MudTd>$@context.Price.ToString("F2")</MudTd>
+                                            <MudTd>$@((context.Price * context.Quantity).ToString("F2"))</MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+
+                                    <MudText Typo="Typo.h6" Class="mt-4" Color="Color.Primary">
+                                        Order Total: $@CalculateOrderTotal(order.Items).ToString("F2")
+                                    </MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    }
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <!-- Pagination would go here -->
+}
+else
+{
+    <MudAlert Severity="Severity.Info">
+        You haven't placed any orders yet.
+        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/products">
+            Start Shopping
+        </MudButton>
+    </MudAlert>
+}
+
+@code {
+    private List<OrderDto>? _orders = new();
+    private bool _loading = true;
+    private HashSet<Guid> _expandedOrders = new();
+    private string? _userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userName = authState.User?.Identity?.Name;
+
+        await LoadOrders();
+        _loading = false;
+    }
+
+    private async Task LoadOrders()
+    {
+        // For now, create some mock data since we don't have OrderService yet
+        // Later you can replace this with actual API calls
+
+        if (!string.IsNullOrEmpty(_userName))
+        {
+            // Mock orders - replace with actual API call
+            _orders = new List<OrderDto>
+            {
+                new OrderDto(
+                    Id: Guid.NewGuid(),
+                    CustomerId: Guid.NewGuid(),
+                    OrderName: $"Order-{DateTime.Now:yyyyMMdd}-001",
+                    ShippingAddress: new AddressDto("John", "Doe", "john@example.com", "123 Main St", "USA", "NY", "10001"),
+                    BillingAddress: new AddressDto("John", "Doe", "john@example.com", "123 Main St", "USA", "NY", "10001"),
+                    Payment: new PaymentDto("John Doe", "1234567890123456", "12/25", "123", 1),
+                    Items: new List<OrderItemDto>
+                    {
+                        new OrderItemDto(Guid.NewGuid(), Guid.NewGuid(), 2, 500m),
+                        new OrderItemDto(Guid.NewGuid(), Guid.NewGuid(), 1, 400m)
+                    }
+                )
+            };
+        }
+    }
+
+    private void ToggleOrderDetails(Guid orderId)
+    {
+        if (_expandedOrders.Contains(orderId))
+        {
+            _expandedOrders.Remove(orderId);
+        }
+        else
+        {
+            _expandedOrders.Add(orderId);
+        }
+    }
+
+    private decimal CalculateOrderTotal(List<OrderItemDto> items)
+    {
+        return items.Sum(item => item.Price * item.Quantity);
+    }
+}
